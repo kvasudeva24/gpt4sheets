@@ -209,3 +209,11 @@ function listTxtFiles(){
   }
   return result;
 }
+
+/**
+ * Gets OAuth token for the Drive Picker API
+ * @returns {string} OAuth token for the current user
+ */
+function getOAuthToken() {
+  return ScriptApp.getOAuthToken();
+}

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <script src="https://apis.google.com/js/api.js"></script>
+  <!-- <script type="text/javascript" src="https://apis.google.com/js/platform.js"></script> -->
   <style>
     html, body {
       font-family: 'Roboto', 'Segoe UI', Arial, sans-serif;
@@ -589,16 +591,10 @@
 
       <div class="section">
         <div class="section-title">Text File → Cell Output</div>
-        <p class="section-description">Search Drive for .txt files and insert their content directly into your spreadsheet.</p>
+        <p class="section-description">Pick a text file from Drive and insert its content directly into your spreadsheet.</p>
         <div class="text-to-cell-div">
-          <div class="find-txt-button">
-            <button onclick="listTxtFilesHelper()">🔍 Find .txt Files in Drive</button>
-          </div>
-          <div class="select-txt">
-            <select id="fileSelect"></select>
-          </div>
-          <div class="outputTxtButton">
-            <button onclick="insertTxtContent()">📄 Output File Text to Cell</button>
+          <div class="picker-button">
+            <button onclick="createPicker()">� Pick a Text File</button>
           </div>
         </div>
       </div>
@@ -629,34 +625,59 @@
       checkForUpdateDisplay();
     };
     
-    //calls the backend to grab the .txt files and forwards that to populateFileSelect
-    function listTxtFilesHelper(){
-      google.script.run.withSuccessHandler(populateFileSelect).listTxtFiles();
+    // Create and display Google Drive file picker
+    function createPicker() {
+        google.script.run.withSuccessHandler(token => {
+          gapi.load('picker', {
+            callback: function () {
+              showPicker(token);
+            }
+          });
+        }).getOAuthToken();
     }
 
-    //need access to the DOM, so populate file select is client side
-    function populateFileSelect(files){
-      const select = document.getElementById("fileSelect");
-      select.innerHTML = "";
-
-      const baseOption = document.createElement("option");
-      baseOption.value = -1;
-      baseOption.text = "-- Select a txt file --";
-      select.add(baseOption);
-
-      for(const file of files){
-        const option = document.createElement("option");
-        option.value = file.id;
-        option.text = file.name;
-        select.add(option);
+    // Show the file picker once we have the OAuth token
+    function showPicker(token) {
+      if (!token) {
+        alert('Could not get authorization token. Please try again or contact support.');
+        return;
       }
+      if (!token) {
+        alert("OAuth token is missing.");
+        return;
+      }
+
+      const view = new google.picker.View(google.picker.ViewId.DOCS);
+      view.setMimeTypes("text/plain");
+
+      const picker = new google.picker.PickerBuilder()
+        .addView(view)
+        .setOAuthToken(token)
+        .setDeveloperKey('AIzaSyCt47JvSEhLtKhA4rzVdmCmntcRQRxAm5U')  // your actual API key
+        .setCallback(pickerCallback)
+        .setTitle('Select a text file')
+        .build();
+
+      picker.setVisible(true);
     }
 
-    // call the server side function to output in a cell
-    function insertTxtContent(){
-      let txtID = document.getElementById("fileSelect").value;
-      google.script.run.file_to_cell(txtID);
-      document.getElementById("fileSelect").value = -1;
+    // Handle file selection from the picker
+    function pickerCallback(data) {
+      if (data.action === google.picker.Action.PICKED) {
+        const fileId = data.docs[0].id;
+        const fileName = data.docs[0].name;
+        
+        // Show loading indicator or message
+        const message = `Importing text from "${fileName}"...`;
+        google.script.run
+          .withSuccessHandler(function() {
+            // Success handling if needed
+          })
+          .withFailureHandler(function(error) {
+            alert('Error: ' + error);
+          })
+          .file_to_cell(fileId);
+      }
     }
 
     function run_selected_option() {
