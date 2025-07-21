@@ -193,9 +193,9 @@ function getBackupSheet(sheet){
 
 
 /**
- * Helper function to get the txt file names and IDs in one persons drive
- * 
- * @returns an array that has both txt file names and ID
+ * Lists text files in the user's Google Drive
+ * @param {number} maxResults The maximum number of results to return
+ * @returns {Array} List of text files with names and IDs
  */
 function listTxtFiles(maxResults = 100){
   try{
@@ -214,6 +214,31 @@ function listTxtFiles(maxResults = 100){
     return result;
   } catch (error) {
     Logger.log('Error listing text files: ' + error.toString());
+    return [];
+  }
+}
+
+/**
+ * @param {number} maxResults
+ * @returns {Array} List of PDF files with names and IDs
+ */
+function listPdfFiles(maxResults = 5){
+  try{
+    const folder = DriveApp.getRootFolder();
+    const files = folder.getFilesByType(MimeType.PDF);
+    const result = [];
+    let count = 0;
+    while(files.hasNext() && count < maxResults){
+      const file = files.next();
+      result.push({
+        name: file.getName(),
+        id: file.getId()
+      });
+      count++;
+    }
+    return result;
+  } catch (error){
+    Logger.log('Error listing PDF files: ' + error.toString());
     return [];
   }
 }

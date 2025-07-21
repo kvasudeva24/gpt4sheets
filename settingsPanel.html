@@ -594,7 +594,13 @@
         <p class="section-description">NOTE: Only .txt files in the root/main folder of Google Drive will show up.</p>
         <div class="text-to-cell-div">
           <div class="select-txt">
-            <select onclick="listTxtFilesHelper()" id="fileSelect">
+            <select id="fileTypeSelect">
+              <option value="txt">Text File</option>
+              <option value="pdf">PDF File</option>
+            </select>
+          </div>
+          <div class="select-txt">
+            <select onclick="listFilesHelper()" id="fileSelect">
               <option>-- Click to load file(s) --</option>
             </select>
           </div>
@@ -631,8 +637,13 @@
     };
     
     //calls the backend to grab the .txt files and forwards that to populateFileSelect
-    function listTxtFilesHelper(){
-      google.script.run.withSuccessHandler(populateFileSelect).listTxtFiles();
+    function listFilesHelper(){
+      const fileType = document.getElementById("fileTypeSelect").value;
+      if(document.getElementById("fileTypeSelect").value == "txt"){
+        google.script.run.withSuccessHandler(populateFileSelect).listTxtFiles();
+      } else {
+        google.script.run.withSuccessHandler(populateFileSelect).listPdfFiles();
+      }
     }
 
     //need access to the DOM, so populate file select is client side
@@ -655,8 +666,15 @@
 
     // call the server side function to output in a cell
     function insertTxtContent(){
-      let txtID = document.getElementById("fileSelect").value;
-      google.script.run.file_to_cell(txtID);
+      let fileID = document.getElementById("fileSelect").value;
+      let fileType = document.getElementById("fileTypeSelect").value;
+      if(fileType === "txt"){
+        google.script.run.txt_to_cell(fileID);
+      } else {
+        alert("reacher chkpt 1");
+        google.script.run.pdf_to_cell(fileID);
+      }
+      
       document.getElementById("fileSelect").value = -1;
     }
 

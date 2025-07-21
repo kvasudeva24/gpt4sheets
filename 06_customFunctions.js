@@ -332,7 +332,7 @@ function values_to_formulas(sheet, range){
  * @param {string} txtID - The Drive ID of the .txt file to extract 
  * @returns {void} - Doesn't return anything, but sets the value of the current cell to the text of the .txt file
  */
-function file_to_cell(txtID){
+function txt_to_cell(txtID){
   // Check for valid input
   if(txtID === '-1' || txtID === null || txtID === undefined){
     SpreadsheetApp.getUi().alert("Please choose a .txt file to extract.");
@@ -372,5 +372,56 @@ function file_to_cell(txtID){
     // Handle potential errors
     console.error("Error in file_to_cell:", error);
     SpreadsheetApp.getUi().alert("Error importing text file: " + error.toString());
+  }
+}
+
+
+/**
+ * 
+ * @param {int} pdfId 
+ * @returns 
+ */
+function pdf_to_cell(pdfId){
+  // Check for valid input
+  SpreadsheetApp.getUi().alert("checkpt2");
+  if(pdfId === '-1' || pdfId === null || pdfId === undefined){
+    SpreadsheetApp.getUi().alert("Please choose a PDF file to extract.");
+    return;
+  }
+
+  // Get active sheet and cell
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const cell = sheet.getCurrentCell();
+
+  if(cell === null){
+    SpreadsheetApp.getUi().alert("Choose a cell for the output.");
+    return;
+  }
+
+
+  try {
+    SpreadsheetApp.getUi().alert("checkpt3");
+    const file = DriveApp.getFileById(pdfId);
+    const fileSize = file.getSize();
+    const MAX_SIZE = 10 * 1024 * 1024; //10MB in bytes
+
+    if(fileSize > MAX_SIZE){
+      SpreadsheetApp.getUi().alert("File is too large to import. Please select a smaller PDF file (under 10MB).");
+      return;
+    }
+    SpreadsheetApp.getUi().alert("checkpt4");
+    const fileBody = file.getBlob();
+    const data = fileBody.getDataAsString();
+    const decodedData = AI_CALL("You are a joke expert", "Tell me a joke abt a dog");
+
+    //Insert into cell
+    SpreadsheetApp.getUi().alert("checkpt5");
+    cell.setValue(decodedData);
+    SpreadsheetApp.getUi().alert("Extracted text from '" + file.getName() + "' successfully");
+    
+  } catch (error) {
+    // Handle potential errors
+    console.error("Error in pdf_to_cell:", error);
+    SpreadsheetApp.getUi().alert("Error importing PDF file: " + error.toString());
   }
 }
